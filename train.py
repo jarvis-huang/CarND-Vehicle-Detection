@@ -119,5 +119,11 @@ print('For these',n_predict, 'labels: ', y_test[0:n_predict])
 t2 = time.time()
 print(round(t2-t, 5), 'Seconds to predict', n_predict,'labels with SVC')
 
-storage = { "svc": svc, "car_features": car_features, "notcar_features": notcar_features}
+storage = { "svc": svc, 
+            "scaler": X_scaler,
+            "orient": orient,
+            "pix_per_cell": pix_per_cell,
+            "cell_per_block": cell_per_block,
+            "spatial_size": (spatial, spatial),
+            "hist_bins": hist_bin }
 pickle.dump(storage, open( "storage.p", "wb" ) )

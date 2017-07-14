@@ -6,7 +6,7 @@ import pickle
 import cv2
 from lesson_functions import *
 
-dist_pickle = pickle.load( open("svc_pickle.p", "rb" ) )
+dist_pickle = pickle.load( open("storage.p", "rb" ) )
 svc = dist_pickle["svc"]
 X_scaler = dist_pickle["scaler"]
 orient = dist_pickle["orient"]
@@ -15,7 +15,7 @@ cell_per_block = dist_pickle["cell_per_block"]
 spatial_size = dist_pickle["spatial_size"]
 hist_bins = dist_pickle["hist_bins"]
 
-img = mpimg.imread('test_image.jpg')
+img = mpimg.imread('test_image/test1.jpg')
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
