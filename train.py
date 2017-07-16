@@ -6,7 +6,7 @@ import glob
 import time
 import pickle
 from lesson_functions import *
-from hog_functions import *
+#from hog_functions import *
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 import sklearn
@@ -33,8 +33,8 @@ for image in car_images+noncar_images:
 # TODO play with these values to see how your classifier
 # performs under different binning scenarios
 spatial = 16
-histbin = 32
-colorspace = 'HSV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+histbin = 16 # 32
+colorspace = 'RGB2HSV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9
 pix_per_cell = 8
 cell_per_block = 2
@@ -43,22 +43,26 @@ hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
 print('n_cars:', len(cars))
 print('n_noncars:', len(notcars))
 import random
-sample_size = 4000
+sample_size = 7000
 cars = random.sample(cars, sample_size) #cars[0:sample_size]
 notcars = random.sample(notcars, sample_size) #notcars[0:sample_size]
 
 t=time.time()
-#car_features = extract_base_features(cars, cspace=colorspace, spatial_size=(spatial, spatial),
-#                        hist_bins=histbin, hist_range=(0, 256))
-#notcar_features = extract_base_features(notcars, cspace=colorspace, spatial_size=(spatial, spatial),
-#                        hist_bins=histbin, hist_range=(0, 256))
+car_features = extract_features(cars, cspace=colorspace, spatial_size=(spatial, spatial),
+                        hist_bins=histbin, hist_range=(0, 256), orient=orient, 
+                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
+                        hog_channel=hog_channel)
+notcar_features = extract_features(notcars, cspace=colorspace, spatial_size=(spatial, spatial),
+                        hist_bins=histbin, hist_range=(0, 256), orient=orient, 
+                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
+                        hog_channel=hog_channel)
                         
-car_features = extract_hog_features(cars, cspace=colorspace, orient=orient, 
-                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
-                        hog_channel=hog_channel)
-notcar_features = extract_hog_features(notcars, cspace=colorspace, orient=orient, 
-                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
-                        hog_channel=hog_channel)
+#car_hog_features = extract_hog_features(cars, cspace=colorspace, orient=orient, 
+#                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
+#                        hog_channel=hog_channel)
+#notcar_hog_features = extract_hog_features(notcars, cspace=colorspace, orient=orient, 
+#                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
+#                        hog_channel=hog_channel)
 t2 = time.time()
 print('Feature extraction:', round(t2-t, 2),  'seconds')
 
@@ -125,5 +129,7 @@ storage = { "svc": svc,
             "pix_per_cell": pix_per_cell,
             "cell_per_block": cell_per_block,
             "spatial_size": (spatial, spatial),
-            "hist_bins": hist_bin }
+            "hist_bins": histbin,
+            "colorspace": colorspace,
+            "hog_channel": hog_channel }
 pickle.dump(storage, open( "storage.p", "wb" ) )
