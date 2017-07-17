@@ -6,7 +6,6 @@ import glob
 import time
 import pickle
 from lesson_functions import *
-#from hog_functions import *
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 import sklearn
@@ -32,10 +31,10 @@ for image in car_images+noncar_images:
 
 # TODO play with these values to see how your classifier
 # performs under different binning scenarios
-spatial = 16
+spatial = 32
 histbin = 16 # 32
-colorspace = 'RGB2HSV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9
+colorspace = 'RGB2YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 8
 pix_per_cell = 8
 cell_per_block = 2
 hog_channel = "ALL" # Can be 0, 1, 2, or "ALL"
@@ -81,29 +80,9 @@ rand_state = np.random.randint(0, 100)
 X_train, X_test, y_train, y_test = train_test_split(
     scaled_X, y, test_size=0.2, random_state=rand_state)
 
-'''
-print('Using spatial binning of:',spatial,
-    'and', histbin,'histogram bins')
-print('Feature vector length:', len(X_train[0]))
-# Use a linear SVC 
-svc = LinearSVC()
-# Check the training time for the SVC
-t=time.time()
-svc.fit(X_train, y_train)
-t2 = time.time()
-print(round(t2-t, 2), 'Seconds to train SVC...')
-# Check the score of the SVC
-print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
-# Check the prediction time for a single sample
-t=time.time()
-n_predict = 10
-print('My SVC predicts: ', svc.predict(X_test[0:n_predict]))
-print('For these',n_predict, 'labels: ', y_test[0:n_predict])
-t2 = time.time()
-print(round(t2-t, 5), 'Seconds to predict', n_predict,'labels with SVC')
-'''
-
-print('Using:',orient,'orientations',pix_per_cell,
+print('Using spatial binning of:',spatial)
+print('Using',histbin,'histogram bins')
+print('Using HOG:',orient,'orientations',pix_per_cell,
     'pixels per cell and', cell_per_block,'cells per block')
 print('Feature vector length:', len(X_train[0]))
 # Use a linear SVC 

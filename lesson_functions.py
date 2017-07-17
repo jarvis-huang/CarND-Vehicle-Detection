@@ -15,6 +15,8 @@ def convert_color(img, conv='RGB2HSV'):
         return cv2.cvtColor(img, cv2.COLOR_RGB2LUV)
     if conv == 'RGB2HSV':
         return cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    if conv == 'RGB2YUV':
+        return cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
