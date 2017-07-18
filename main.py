@@ -58,7 +58,6 @@ def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_ce
     bboxes = []
     
     img_tosearch = img[ystart:ystop,:,:]
-    #ctrans_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
     ctrans_tosearch = convert_color(img_tosearch, conv=colorspace)
     if scale != 1:
         imshape = ctrans_tosearch.shape
