@@ -40,15 +40,16 @@ def get_heat_map(img, bboxes):
     return heatmap
 
 def find_bboxes_from_heatmap(heatmap, thresh=2):
-    heatmap[heatmap<thresh] = 0
-    labels = label(heatmap)
+    new_heatmap = np.copy(heatmap)
+    new_heatmap[new_heatmap<thresh] = 0
+    labels = label(new_heatmap)
     bboxes = []
     for car_num in range(1, labels[1]+1):
         nonzero = (labels[0]==car_num).nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
         bboxes.append(((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy))))
-    return bboxes
+    return bboxes, labels[0]
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
@@ -126,7 +127,7 @@ def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_ce
 def draw_bboxes(img, bboxes):
     draw_img = np.copy(img)
     for bb in bboxes:
-        cv2.rectangle(draw_img,bb[0],bb[1],(0,0,255),3)
+        cv2.rectangle(draw_img,bb[0],bb[1],(0,0,255),5)
     return draw_img
     
 # Draw detected car centroids
@@ -158,12 +159,25 @@ def process_image(img):
 
     ## Method 1: Heatmap
     heatmap = get_heat_map(img, bboxes)
-    bboxes_nms = find_bboxes_from_heatmap(heatmap, thresh=3) # non-max suppression
+    bboxes_nms, label_map = find_bboxes_from_heatmap(heatmap, thresh=3) # non-max suppression
     out_img = draw_bboxes(img, bboxes_nms)
     heatmap = np.clip(heatmap, 0, 255)
-    mpimg.imsave("heatmap.png", heatmap, cmap='hot')
-    mpimg.imsave("detection.png", out_img)
+    #mpimg.imsave("heatmap.png", heatmap, cmap='hot')
+    #mpimg.imsave("detection.png", out_img)
     #plt.imshow(out_img)
+    
+    ig, axes = plt.subplots(2,2, figsize=(9,6))
+    axes[0,0].set_title('orignal')
+    axes[0,0].imshow(img)
+    axes[0,1].set_title('heatmap')
+    axes[0,1].imshow(heatmap, cmap='hot')
+    axes[1,0].set_title('labeling')
+    axes[1,0].imshow(label_map, cmap='gray')
+    axes[1,1].set_title('bounding box overlay')
+    axes[1,1].imshow(out_img)
+    plt.tight_layout()
+    plt.savefig('compare_test1.png')
+
     return out_img
     
     

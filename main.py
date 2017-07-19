@@ -51,7 +51,7 @@ def find_bboxes_from_heatmap(heatmap, thresh=2):
     return bboxes
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
-def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins):
+def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, draw_all_bboxes=False):
     
     draw_img = np.copy(img)
     img = img.astype(np.float32)/255
@@ -114,13 +114,19 @@ def find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_ce
             #test_features = X_scaler.transform(hog_features.reshape(1, -1))  
             test_prediction = svc.predict(test_features)
             
+            if draw_all_bboxes:
+                xbox_left = np.int(xleft*scale)
+                ytop_draw = np.int(ytop*scale)
+                win_draw = np.int(window*scale)
+                cv2.rectangle(draw_img,(xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+win_draw+ystart),(0,0,255),2)
+                
             if test_prediction == 1:
                 xbox_left = np.int(xleft*scale)
                 ytop_draw = np.int(ytop*scale)
                 win_draw = np.int(window*scale)
                 bboxes.append(((xbox_left, ytop_draw+ystart),(xbox_left+win_draw,ytop_draw+win_draw+ystart)))
 
-    return bboxes
+    return bboxes, draw_img
   
 def draw_bboxes(img, bboxes):
     draw_img = np.copy(img)
@@ -264,9 +270,9 @@ cars = []
 def process_image(img):
     global ystart, ystop, scale, cars
     print("---")
-    bboxes1 = find_car_bboxes(img, ystart, ystop, 1.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
-    bboxes2 = find_car_bboxes(img, ystart, ystop, 1.5, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
-    bboxes3 = find_car_bboxes(img, ystart, ystop, 2.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)    
+    bboxes1, _ = find_car_bboxes(img, ystart, ystop, 1.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+    bboxes2, _ = find_car_bboxes(img, ystart, ystop, 1.5, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+    bboxes3, _ = find_car_bboxes(img, ystart, ystop, 2.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)    
     bboxes = bboxes1 + bboxes2 + bboxes3
     
     '''
@@ -296,9 +302,33 @@ def process_image(img):
     assign_new_bbs(cars, bboxes_nms, dist_thresh=30, wl_thresh=20)
     out_img = draw_cars(img, cars)
     
-    
     return out_img
     
+'''
+## Generate sliding window plot
+img = mpimg.imread('test_images/test1.jpg')
+bboxes, draw_img = find_car_bboxes(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, draw_all_bboxes=True)
+mpimg.imsave("sliding_windows.png", draw_img)
+quit()
+'''
+
+
+## Output some examples
+
+import glob
+images = glob.glob('./test_images/*.jpg')
+for image in images:
+    print(image)
+    img = mpimg.imread(image)
+    bboxes1, _ = find_car_bboxes(img, ystart, ystop, 1.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+    bboxes2, _ = find_car_bboxes(img, ystart, ystop, 1.5, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
+    bboxes3, _ = find_car_bboxes(img, ystart, ystop, 2.0, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)    
+    bboxes = bboxes1 + bboxes2 + bboxes3
+    heatmap = get_heat_map(img, bboxes)
+    bboxes_nms = find_bboxes_from_heatmap(heatmap, thresh=3) # non-max suppression
+    img_out = draw_bboxes(img, bboxes_nms)
+    mpimg.imsave(image.replace('.jpg','_out.png'), img_out)
+quit()
     
 video_in = 'project_video.mp4'
 clip = VideoFileClip(video_in)
@@ -309,7 +339,6 @@ clip = VideoFileClip(video_in)
 #clip = VideoFileClip(video_in)
 
 video_out = video_in.replace('.mp4', '_out.mp4')
-
 
 new_clip = clip.fl_image(process_image)
 new_clip.write_videofile(video_out, audio=False)

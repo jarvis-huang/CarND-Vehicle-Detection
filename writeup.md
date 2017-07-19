@@ -10,13 +10,10 @@ The goals / steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
+[image1]: ./output_images/car_noncar.png
+[image3]: ./output_images/sliding_windows.png
+[image5]: ./output_images/compare_test1.png
+[image7]: ./output_images/output_images.png
 [video1]: ./project_video.mp4
 
 ---
@@ -39,7 +36,7 @@ I then explored different color spaces and different `skimage.hog()` parameters 
 
 I settled on `YCrCb` color space and the HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`. This is because thye give the highest classification accuracy on the validation set. The validation accuracy was >0.99.
 
-I tried various combinations of parameters and it turns out the combination of HOG, spatial and color histogram features gives the best results. I enabled all three feature types by seeting `hog_channel = "ALL"`. On Line 91 of `lesson_functions.py`, all three features are concatenanted to form a long feature vector.
+I tried various combinations of parameters and it turns out the combination of HOG, spatial and color histogram features gives the best results. I enabled all three feature types by seeting `hog_channel = "ALL"`. On Line 93 of `lesson_functions.py`, all three features are concatenanted to form a long feature vector.
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
@@ -51,16 +48,18 @@ I trained a linear SVM using **LinearSVC** class from `sklearn.svm` module. Line
 
 The sliding window search is done inside the `find_car_bboxes` function of `main.py`. First I need to compute the number of blocks and steps to take in each direction. Then I do a double for loop to interate over all window locations to extract the features inside each window patch. Finally I run the SVM classifier over the feature vector to determine whether that patch contains a car. If a car is detected, the window location is recorded into a list.
 
+Here is a visualization of the sliding windows over a test image.
+
+![alt text][image3]
+
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-It is crucial to include multiple scales to increase detection rate. I used three scales (1.0, 1.5x, 2.0x) sliding windows and combined their outputs. However, this causes duplicate detection problem. I adopted the heatmap method, finding the pixels where most boxes intersect and threshold to get fewer boxes.
+It is crucial to include multiple scales to increase detection rate. I used three scales (1.0x, 1.5x, 2.0x) sliding windows and combined their outputs. However, this causes duplicate detection problem. I adopted the heatmap method, finding the pixels where most boxes intersect and threshold to get fewer boxes.
 
-I searched on three scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
-
-![alt text][image4]
+I searched on three scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.
 
 To speed up computation, I compute the HOG features on the entire image all at once, and then slide a window across the feature map to extract smaller patches for classification. This is done is the `find_car_bboxes` function inside `main.py`.
----
+
 
 ### Video Implementation
 
@@ -72,9 +71,7 @@ Here's a [link to my video result](./project_video_out.mp4)
 
 False positives is a serious issue in my detection result. Here's how I solve the problem. I used a combination of heatmap smoothing and temporal filtering to reduce the number of FPs. First, I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
 
-Here's an example result showing the heatmap from an image, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on that image:
-
-### Here are the original image, heatmap, output of `scipy.ndimage.measurements.label()` and bounding boxes then overlaid on that image
+Here's an example showing the original image, heatmap, output of `scipy.ndimage.measurements.label()` and bounding boxes then overlaid on that image:
 
 ![alt text][image5]
 
